@@ -1,5 +1,9 @@
 var dotArr = []
 var stopDots = false
+var toDrawLines = true
+var toDrawCircles = true
+var lineData = {maxDist:100, color:"#aaaaaa", lineThickness:.3}
+var dotsData = {number:100, speed:1, radius:2, color:"grey"}
 
 var canvas = document.getElementById('dotCanvas') //defined canvas GLOBALY
 if (canvas.getContext){
@@ -11,60 +15,10 @@ if (canvas.getContext){
 }
 
 
-
-
-
-class Canvas {
-	constructor(){
-		this.canvas = canvas;
-	}
-
-	fill(){
-
-		this.canvas.width = window.innerWidth
-		this.canvas.height = window.innerHeight
-		document.body.style.margin = "0"
-		document.body.style.overflow = "hidden"
-	}
-
-	color(color){
-		this.canvas.style.background = color
-	}
-
-	image(url, overlay){
-		this.canvas.style.backgroundImage = "url("+ url +")";
-	}
-	
-}
-
-// class that handles drawing a circle
-class DrawCircle {
-	constructor(x,y,r,color){
-		this.x = x;
-		this.y = y;
-		this.r = r;
-		this.color = color;
-
-		this.makeCircle()
-	}
-
-	makeCircle(){
-		ctx.beginPath();
-		ctx.arc(this.x, this.y, this.r,0, 2*Math.PI);
-		if(this.color != undefined){
-			ctx.fillStyle = this.color
-		}else{
-			ctx.fillStyle = "white"
-
-		}
-		
-		ctx.fill()
-	}
-
-	circleColor(color){
-		this.color = color
-	}
-
+// HELPER FUNCTIONS
+// ===============================================
+function randomInt(min, max){
+	return(Math.round(Math.random() * (max - min) + min))
 }
 
 // convert to rgba, from hex, or rgb, or rgba
@@ -94,7 +48,51 @@ function toRGBA(color){
 
 }
 
+// ==============================================
+// ==============================================
 
+class Canvas {
+	constructor(){
+		this.canvas = canvas;
+	}
+
+	fill(){
+		this.canvas.width = window.innerWidth
+		this.canvas.height = window.innerHeight
+		document.body.style.margin = "0"
+		document.body.style.overflow = "hidden"
+	}
+
+	color(color){
+		this.canvas.style.background = color
+	}
+
+	image(url){
+		this.canvas.style.backgroundImage = "url("+ url +")";
+	}	
+}
+
+// class that handles drawing a circle
+class DrawCircle {
+	constructor(x,y,r,color = "#ffffff"){
+		this.x = x;
+		this.y = y;
+		this.r = r;
+		this.color = color;
+		this.makeCircle()
+	}
+
+	makeCircle(){
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.r,0, 2*Math.PI);
+		ctx.fillStyle = this.color
+		ctx.fill()
+	}
+
+	circleColor(color){
+		this.color = color
+	}
+}
 
 class DrawLine{
 	constructor(startx, starty, endx, endy, color = "#ffffff", thickness = .1){
@@ -105,12 +103,10 @@ class DrawLine{
 			this.color = color
 		}
 		this.thickness = thickness;
-
 		this.startx = startx;
 		this.starty = starty;
 		this.endx = endx;
 		this.endy = endy
-
 		this.drawLine()
 	}
 
@@ -127,15 +123,16 @@ class DrawLine{
 }
 
 function drawLines(maxLineDist, lineColor, lineThickness){
+	// console.log(maxLineDist)
 	for(var i = 0; i < dotArr.length; i++){
 		for(var q = 0; q < dotArr.length; q++){
 			var len = ((Math.abs(dotArr[i].x - dotArr[q].x)) + (Math.abs(dotArr[i].y - dotArr[q].y)))/2
+
 			if(len <= maxLineDist){
 				var opacity = (maxLineDist - len)/maxLineDist
 				var split = toRGBA(lineColor).split(",")
 				split[3] = opacity + ")"
 				newLineColor = split.toString()
-				console.log(newLineColor)	
 				var line = new DrawLine(dotArr[i].x, dotArr[i].y, dotArr[q].x, dotArr[q].y, newLineColor, lineThickness)
 			}
 			
@@ -143,27 +140,11 @@ function drawLines(maxLineDist, lineColor, lineThickness){
 	}
 }
 
+function initialize(numDots, speed, radius, color, maxLineDist, lineColor, lineThickness){
+	fillArray(dotsData.number, dotsData.speed, dotsData.radius, dotsData.color)
+	// paramaters are fed into drawLines function
+	animate(maxLineDist, lineColor, lineThickness)
 
-
-// initialize creating circles
-// if undefined, params will default to,( 100, 1, 2, grey)
-function initCircles(numDots, speed, radius, color){
-	// fill the array with data
-	fillArray(numDots, speed, radius, color)
-	// create dots from data
-	drawCircles()
-	// start animation
-	animate()
-}
-
-// initialize circles and lines
-function initCirclesLines(numDots, speed, radius, color, maxLineDist, lineColor, lineThickness){
-
-}
-
-
-function randomInt(min, max){
-	return(Math.round(Math.random() * (max - min) + min))
 }
 
 // draw circle for all points in dotArr[]
@@ -173,20 +154,16 @@ function drawCircles(){
 	}
 }
 
-function random(arr){
-	
-}
-
 
 // fills dotArr[] with x, y, r, color, dx, and dy
-function fillArray(number = 100, speed = 1, radius = 2, color = "grey"){
+function fillArray(number,speed,radius,color){
 	for(var i = 0; i < number; i++){
 		if((Array.isArray(radius)) && (radius.length == 2)) {		
-			var newRadius = (Math.random() * (radius[1] - radius[0])) + radius[0]
-			
+			var newRadius = (Math.random() * (radius[1] - radius[0])) + radius[0]		
 		}else{
 			newRadius = radius
 		}
+
 		dotInfo = {
 			x:randomInt(0, canvas.width),
 			y:randomInt(0, canvas.height),
@@ -210,9 +187,7 @@ function moveCircles(){
 			dotArr[i].dy = -dotArr[i].dy
 		}
 		dotArr[i].x += dotArr[i].dx
-		dotArr[i].y += dotArr[i].dy
-		
-		
+		dotArr[i].y += dotArr[i].dy	
 	}
 }
 
@@ -221,13 +196,28 @@ function endDots(){
 	ctx.clearRect(0,0,canvas.width, canvas.height)
 }
 
+function switchCircles(){
+	toDrawCircles = !toDrawCircles
+}
+
+function switchLines(){
+	toDrawLines = !toDrawLines
+}
+
 function animate(){
+	// clear canvas
 	ctx.clearRect(0,0,canvas.width, canvas.height)
 	// change coordinates in array
 	moveCircles()
 	// redraw
-	drawCircles()
-	drawLines(100, "#000000", .3)
+	if(toDrawCircles){
+		drawCircles()
+	}
+	if(toDrawLines){
+		// info is stored in dict called lineData
+		drawLines(lineData.maxDist, lineData.color, lineData.lineThickness)
+	}
+	
 	if(stopDots == false){
 		window.requestAnimationFrame(animate)
 	}else{
@@ -235,4 +225,5 @@ function animate(){
 	}
 	
 }
+
 

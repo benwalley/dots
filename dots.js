@@ -1,8 +1,12 @@
 var canv = new Canvas()
 
 
-canv.image("aboutCapture.PNG")
-// canv.color("rgba(20,20,20,.8)")
+// canv.image("aboutCapture.PNG")
+var lineData = {maxDist:100, color:"#aaaaaa", lineThickness:.2}
+canv.color("rgba(20,20,20,.8)")
 canv.fill()
-// number speed radius color
-initCircles(100,.5, [0.2,2], 'black')
+// toDrawLines = false
+// toDrawCircles = false
+// numDots, speed, radius, color, maxLineDist, lineColor(hex), lineThickness
+initialize()
+
